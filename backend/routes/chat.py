@@ -1,15 +1,17 @@
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from backend.models.schemas import ChatRequest
 from backend.services.embedding_service import embedding_service
 from backend.services.vector_service import vector_service
 from backend.services.llm_service import llm_service
+from backend.main import limiter
 
 router = APIRouter()
 
 @router.post("/stream")
-async def chat(request: ChatRequest):
+@limiter.limit("60/minute")
+async def chat(request: ChatRequest, req: Request):
     # 1. Embed query
     query_vector = embedding_service.generate_embeddings([request.message])[0]
     
